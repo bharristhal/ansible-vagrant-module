@@ -1,0 +1,17 @@
+# Author: Benjamin Harristhal
+# Date: 4/5/2016
+# This is a sample playbook to initialize a vagrant system
+---
+- name: Test for init vagrant
+  hosts: all
+  connection: local
+  tasks:
+    - name: init vagrant system.
+      vagrant:
+        action: init
+        location: /tmp/vdc
+        name: sys
+        template: ubuntu/trusty64
+        network: Wi-Fi
+      register: vsys
+    - debug: var=vsys

@@ -1,0 +1,14 @@
+# Author: Benjamin Harristhal
+# Date: 4/5/2016
+# This is a sample playbook to stop a vagrant system
+---
+- name: Halt vagrant system test
+  hosts: all
+  connection: local
+  tasks:
+    - name: halt vagrant system
+      vagrant:
+        action: halt
+        name: sys1
+      register: my_sys
+    - debug: var=my_sys

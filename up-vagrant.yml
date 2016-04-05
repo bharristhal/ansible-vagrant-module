@@ -1,0 +1,15 @@
+# Author: Benjamin Harristhal
+# Date: 4/5/2016
+# This is a sample playbook to start a vagrant system
+---
+- name: vagrant up test
+  hosts: all
+  connection: local
+  tasks:
+    - name: Bring system online
+      vagrant:
+        action: up
+        name: sys1
+        location: /tmp/vdc
+      register: my_sys
+    - debug: var=my_sys

@@ -1,0 +1,14 @@
+# Author: Benjamin Harristhal
+# Date: 4/5/2016
+# This is a sample playbook to destroy a vagrant system
+---
+- name: destroy system test
+  hosts: all
+  connection: local
+  tasks:
+    - name: destroy system
+      vagrant:
+        action: destroy
+        name: sys6
+      register: my_sys
+    - debug: var=my_sys
