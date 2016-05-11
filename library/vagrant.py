@@ -12,14 +12,14 @@ options:
 notes:
   This module requires that vagrant and virtualbox (vboxmanage) binaries are in the PATH.
 author: Benjamin Harristhal
-''' 
+'''
 import sys
 import subprocess
 import re
 
 # /// sys_cmd class ///
 class sys_cmd(object):
-  
+
   def __init__(self):
     pass
 
@@ -86,7 +86,11 @@ class vagrantctl(object):
     if 'bridge' in kwargs:
       self.bridge = kwargs['bridge']
       # ... fetch list of available bridges ...
-      self.bridge = self._get_network( self.bridge )
+      if ( self.bridge is not None ):
+          self.bridge = self._get_network( self.bridge )
+    if 'ipaddress' in kwargs:
+        self.ipaddress = kwargs['ipaddress']
+
     content = []
     content.append("# -*- mode: ruby -*-\n")
     content.append("# vi: set ft=ruby :\n")
@@ -95,6 +99,8 @@ class vagrantctl(object):
     content.append( uname + ".vm.box = '" + template + "'\n")
     if ( self.bridge is not None ):
       content.append( uname + ".vm.network \"public_network\", bridge: \"" + self.bridge + "\"\n")
+    if ( self.ipaddress is not None ):
+        content.append( uname + ".vm.network \"private_network\", ip: \"" + self.ipaddress + "\"\n")
     content.append( "end\n")
     content.append( "end\n")
     self.sys_cmd.create_dir( loc )
@@ -181,6 +187,7 @@ def main():
                 location = dict(),
                 template = dict(required=False, default="ubuntu/trusty64"),
                 network = dict(),
+                ip = dict(),
                 name = dict(required=True),
                 action = dict(required=True, choices=['init','up','init-up','halt','destroy'])
             )
@@ -193,7 +200,7 @@ def main():
     if module.params.get('action') == 'init' or module.params.get('action') == 'init-up':
         name = vctl.create_unique_system_name( module.params.get('name'))
         location = module.params.get('location') + "/" + name
-        vctl.create_vagrant_file( location, module.params.get('template'), name, bridge=module.params.get('network'))
+        vctl.create_vagrant_file( location, module.params.get('template'), name, bridge=module.params.get('network'), ipaddress=module.params.get('ip'))
         json_output = {
           'name': name,
           'location': module.params.get('location'),
@@ -206,9 +213,14 @@ def main():
         location = module.params.get('location') + "/" + name
         o = vctl.vagrant_up( location )
         i = vctl.vagrant_info( name )
+        if ( module.params.get('ip') is not None ):
+            _ip_address = module.params.get('ip')
+        else:
+            _ip_address = i['public_ip']
+
         json_output = {
           'vuid':i['gid'],
-          'public_ip':i['public_ip'],
+          'public_ip':_ip_address,
           'location' : module.params.get('location'),
           'sys_location': location,
           'template' : module.params.get('template'),
@@ -216,7 +228,7 @@ def main():
         }
 
     if module.params.get('action') == 'halt':
-        r = vctl.halt_vagrant_system( module.params.get('name') ) 
+        r = vctl.halt_vagrant_system( module.params.get('name') )
         json_output = r
 
     if module.params.get('action') == 'destroy':
